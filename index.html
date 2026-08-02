@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Athena — Your Study Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="auth-wrap" id="authScreen">
+    <div class="auth-card">
+<div class="brand">
+          <span class="owl-emoji">🦉</span>
+        <h1>Athena</h1>
+        <p class="tagline">Seek Wisdom</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Log In</button>
+        <button class="auth-tab" data-tab="signup">Sign Up</button>
+      </div>
+    
+      <input type="text" id="authUsername" placeholder="Username">
+      <input type="password" id="authPassword" placeholder="Password">
+      <button id="authSubmitBtn" class="auth-submit">Log In</button>
+      <div id="authStatus" class="status-box"></div>
+    </div>
+  </div>
+
+  <div class="layout" id="mainApp" style="display: none;">
+
+    <aside class="sidebar">
+      <div class="sidebar-user">Logged <br> <span id="welcomeUser"></span></div>
+
+      <button id="newChatBtn" class="new-chat-btn">+ New Chat</button>
+
+      <div class="sidebar-label">Your Shelf</div>
+      <div id="docList" class="doc-list"></div>
+    </aside>
+
+       
+
+    <div class="main-column">
+      <header class="app-header">
+        <span class="owl-emoji">🦉</span>
+        <h1>Athena</h1>
+        <p class="tagline">Seek Wisdom</p>
+      </header>
+
+      <section class="upload-section">
+        <div class="section-eyebrow">Add material</div>
+        <div class="upload-row">
+          <input type="file" id="pdfInput" accept=".pdf">
+          <button id="uploadBtn">Upload</button>
+        </div>
+        <div id="uploadStatus" class="status-box"></div>
+      </section>
+
+      <section class="chat-section">
+        <div class="mode-selector">
+          <button class="mode-btn active" data-mode="ask">Ask a Doubt</button>
+          <button class="mode-btn" data-mode="summarize">Summarize</button>
+          <button class="mode-btn" data-mode="quiz">Generate Q&A</button>
+        </div>
+
+        <div id="chatWindow" class="chat-window">
+          <div class="chat-empty">Upload a PDF, then ask a question, request a summary, generate a Q&A.</div>
+        </div>
+
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="Type your question or topic...">
+          <button id="sendBtn">Send</button>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <button id="logoutBtn" class="ghost-btn">Log Out</button>
+      </footer>
+    </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
