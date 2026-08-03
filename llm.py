@@ -1,12 +1,18 @@
 """
 Calls Google's Gemini API (free tier, no credit card needed) to
 generate real answers, summaries, and quizzes from retrieved PDF chunks.
+Includes automatic retries since the free tier can hit temporary
+"high demand" (503) errors.
 """
 import os
+import time
 import requests
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_URL = GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
+
+MAX_RETRIES = 3
+RETRY_DELAY_SECONDS = 3
 
 
 def build_prompt(mode: str, question: str, context_chunks: list[str]) -> str:
@@ -47,22 +53,40 @@ def generate_answer(mode: str, question: str, context_chunks: list[str]) -> str:
         ]
     }
 
-    try:
-        response = requests.post(
-            f"{GEMINI_URL}?key={GEMINI_API_KEY}",
-            json=payload,
-            timeout=60
-        )
-    except requests.exceptions.Timeout:
-        return "Gemini took too long to respond (over 60 seconds). Please try again — this usually clears up on its own."
-    except requests.exceptions.RequestException as e:
-        return f"Could not reach Gemini API: {str(e)}"
+    last_error = None
 
-    if response.status_code != 200:
-        return f"Error calling Gemini API: {response.status_code} - {response.text}"
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            response = requests.post(
+                f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+                json=payload,
+                timeout=60
+            )
+        except requests.exceptions.Timeout:
+            last_error = "Gemini took too long to respond."
+            time.sleep(RETRY_DELAY_SECONDS)
+            continue
+        except requests.exceptions.RequestException as e:
+            return f"Could not reach Gemini API: {str(e)}"
 
-    data = response.json()
-    try:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError):
-        return "Gemini API returned an unexpected response format."
+        if response.status_code == 503:
+            last_error = "Gemini is temporarily overloaded (503)."
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY_SECONDS)
+                continue
+            else:
+                return (
+                    "Gemini's servers are experiencing high demand right now. "
+                    "This is on Google's end, not your app - please try again in a moment."
+                )
+
+        if response.status_code != 200:
+            return f"Error calling Gemini API: {response.status_code} - {response.text}"
+
+        data = response.json()
+        try:
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError):
+            return "Gemini API returned an unexpected response format."
+
+    return f"Gemini API is currently unavailable after {MAX_RETRIES} attempts. Last error: {last_error}"
